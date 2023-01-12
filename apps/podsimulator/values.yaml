@@ -1,0 +1,27 @@
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+
+# The following values (deploymentGroups) will be
+# overriden by parametrization from app of apps
+# definition. review /applications folder for details
+demoapp:
+  environment: dev
+  serviceLine: oficinas
+  deploymentGroups:
+    - name: personas
+      deploymentLines:
+        - oficinas
+        - mmpp
+      demoappServices:
+        - app1dkjdkdk
+        - app1dkjdk2k
+        - app1dk23434
+    - name: personas2
+      deploymentLines:
+        - oficinas
+        - mmpp
+      demoappServices:
+        - app1dkjdkdk
+        - app1dkjdk2k
+        - app1dk23434

@@ -1,0 +1,61 @@
+demoapp:
+  environment: dev
+  deploymentLines:
+  - name: mmpp
+    namespacesuffix:
+    - uno
+  - name: oficinas
+    namespacesuffix:
+    - uno
+    - dos
+  - name: internet
+    namespacesuffix:
+    - uno
+  deploymentGroups:
+  - name: personas
+    namespacesuffix: uno
+    timeout: 30
+    minreplicas: 0
+    maxreplicas: 5
+    deploymentLines:
+    - oficinas
+    - mmpp
+    demoappServices:
+    - per00000001
+    - per00000002
+    - per00000003
+    - per00011111
+  - name: personas2
+    namespacesuffix: dos
+    timeout: 30
+    minreplicas: 0
+    maxreplicas: 5
+    deploymentLines:
+    - oficinas
+    demoappServices:
+    - per00000013
+    - per00000044
+    - per00000444
+  - name: autorizaciones
+    namespacesuffix: uno
+    timeout: 30
+    minreplicas: 0
+    maxreplicas: 5
+    deploymentLines:
+    - oficinas
+    - internet
+    demoappServices:
+    - aut00000001
+    - aut00000002
+    - aut00000003
+  - name: autorizaciones2
+    namespacesuffix: dos
+    timeout: 30
+    minreplicas: 0
+    maxreplicas: 5
+    deploymentLines:
+    - oficinas
+    demoappServices:
+    - aut00002001
+    - aut00002002
+    - aut00002003

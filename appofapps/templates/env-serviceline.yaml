@@ -1,0 +1,61 @@
+{{- range $key2, $depLine := .Values.demoapp.deploymentLines }}
+{{ $line := $depLine.name }}
+{{- range $depLine.namespacesuffix }}
+{{ $nssuffix := . }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $.Values.demoapp.environment }}-{{ $line }}-{{ $nssuffix }}
+  namespace: openshift-gitops
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: {{ $.Values.demoapp.environment }}-{{ $line }}-{{ $nssuffix }}
+    server: {{ $.Values.spec.destination.server }}
+  project: default
+  ignoreDifferences:
+  - group:
+    kind: DeploymentConfig
+    jsonPointers:
+    - /metadata/labels/demoapp.pds.deployment
+    # We can't use jqPathExpression in Argo CD versions < 2.3.0
+    # jqPathExpressions:
+    #  - .metadata.labels | with_entries( select(.key|contains('demoapp.pds') ) )
+  source:
+    repoURL: {{ $.Values.repo.repoURL }}
+    path: {{ $.Values.repo.path }}
+    targetRevision: HEAD
+    # helm specific config
+    helm:
+      valueFiles:
+      - values.yaml
+      parameters:
+      - name: "demoapp.environment"
+        value: {{ $.Values.demoapp.environment }}
+      - name: "demoapp.serviceLine"
+        value: {{ $line }}
+      - name: "demoapp.namespacesuffix"
+        value: {{ $nssuffix }}
+      values: |
+        demoapp:
+          deploymentGroups:
+          {{- range $key, $depGroup := $.Values.demoapp.deploymentGroups }}
+          {{- if and (has $line $depGroup.deploymentLines) (eq $nssuffix $depGroup.namespacesuffix) }}
+            - name: {{ $depGroup.name }}
+              demoappServices:
+              {{- range $depGroup.demoappServices }}
+                - {{ . }}
+              {{- end }}
+          {{- end -}}
+          {{- end }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - PruneLast=true
+    - CreateNamespace=false
+---
+{{- end }}
+{{- end }}

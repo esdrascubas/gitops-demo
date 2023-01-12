@@ -1,0 +1,72 @@
+{{- range $key, $depGroup := .Values.demoapp.deploymentGroups }}
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: {{ $.Values.demoapp.environment }}-{{ $.Values.demoapp.serviceLine }}-{{ $depGroup.name }}
+  namespace: {{ $.Values.demoapp.environment }}-{{ $.Values.demoapp.serviceLine }}-{{ $.Values.demoapp.namespacesuffix }}
+
+  labels:
+    app.kubernetes.io/part-of: {{ $.Values.demoapp.environment }}-{{ $.Values.demoapp.serviceLine }}-{{ substr 0 3 $depGroup.name }}
+    app: {{ $.Values.demoapp.environment }}-{{ $.Values.demoapp.serviceLine }}-{{ $depGroup.name }}
+    demoapp/line: {{ $.Values.demoapp.serviceLine }}
+    demoapp/environment: {{ $.Values.demoapp.environment }}
+    {{- range $depGroup.demoappServices }}
+    demoapp.service/{{ . }}: {{ . }}
+    {{- end }}
+spec:
+  selector:
+    app: {{ $.Values.demoapp.environment }}-{{ $.Values.demoapp.serviceLine }}-{{ $depGroup.name }}
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: {{ $.Values.demoapp.environment }}-{{ $.Values.demoapp.serviceLine }}-{{ $depGroup.name }}
+    spec:
+      volumes:
+        - name: config-volume
+          emptyDir: {}
+        - name: podinfo
+          downwardAPI:
+            defaultMode: 420
+      containers:
+        - resources: {}
+          terminationMessagePath: /dev/termination-log
+          name: pod-simulator-git
+          env:
+          #  - name: amq.url
+          #    value: openshift-activemq
+            - name: metadata.name
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: metadata.namespace
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: metadata.line
+              value: {{ $.Values.demoapp.serviceLine }}
+            - name: metadata.dc
+              value: {{ $.Values.demoapp.environment }}-{{ $.Values.demoapp.serviceLine }}-{{ $depGroup.name }}
+            - name: metadata.env
+              value: {{ $.Values.demoapp.environment }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8443
+              protocol: TCP
+            - containerPort: 8778
+              protocol: TCP
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: podinfo
+              mountPath: /tmp/etc
+          terminationMessagePolicy: File
+          envFrom:
+            - configMapRef:
+                name: pod-simulator-1-ca
+          image: >-
+            image-registry.openshift-image-registry.svc:5000/openshift/httpd@sha256:12be20b543f545ee4fd85a819275b8b568355c293e972a7000ab2b9fc61ced64
+---
+{{- end }}
