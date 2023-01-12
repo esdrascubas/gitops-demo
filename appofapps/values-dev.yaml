@@ -4,4 +4,4 @@ spec:
 
 repo:
   repoURL: 'https://github.com/esdrascubas/gitops-demo.git'
-  path: apps/ares-podsimulator
+  path: apps/podsimulator
