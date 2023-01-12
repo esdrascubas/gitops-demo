@@ -3,5 +3,5 @@ spec:
     server: https://kubernetes.default.svc
 
 repo:
-  repoURL: 'git@github.ibm.com:esdras-cubas/gitops-test.git'
+  repoURL: 'https://github.com/esdrascubas/gitops-demo.git'
   path: apps/ares-podsimulator
