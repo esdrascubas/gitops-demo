@@ -1,2 +1,2 @@
 # gitops-demo
-GitOps demo
+GitOps demo.
